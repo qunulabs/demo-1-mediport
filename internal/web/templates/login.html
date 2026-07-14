@@ -1,0 +1,44 @@
+{{define "login.html"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MediPort - Patient Portal</title>
+<style>{{css}}</style>
+</head>
+<body>
+<div class="login-shell">
+  <div class="login-hero">
+    <div class="brandmark">
+      {{icon "logo"}}
+    </div>
+    <div class="wordmark">MediPort</div>
+    <p class="tagline">Your records, your care team, one secure portal.</p>
+    {{icon "pulse"}}
+  </div>
+
+  <div class="login-card">
+    <h2>Sign in</h2>
+    <p class="sub">Access your appointments, records, and messages.</p>
+    <form action="/login" method="post">
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" type="text" name="username" placeholder="jane.doe" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
+      </div>
+      <button class="btn" type="submit">
+        Sign in
+        {{icon "arrow-right"}}
+      </button>
+    </form>
+  </div>
+
+  <p class="login-foot">This is a demonstration patient portal. Do not enter real medical or personal information.</p>
+</div>
+</body>
+</html>
+{{end}}

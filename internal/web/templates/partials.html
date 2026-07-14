@@ -1,0 +1,16 @@
+{{define "topbar"}}
+<header class="topbar">
+  <a class="topbar-brand" href="/dashboard">
+    {{icon "logo"}}
+    <span class="topbar-wordmark">MediPort</span>
+  </a>
+  <nav class="topbar-nav">
+    <a href="/dashboard" {{if eq .Active "dashboard"}}class="active" aria-current="page"{{end}}>{{icon "records"}}<span>Dashboard</span></a>
+    <a href="/security" {{if eq .Active "security"}}class="active" aria-current="page"{{end}}>{{icon "lock"}}<span>Security Diagnostics</span></a>
+  </nav>
+  <div class="topbar-user">
+    <span class="avatar">JD</span>
+    <span>Jane Doe</span>
+  </div>
+</header>
+{{end}}

@@ -1,0 +1,148 @@
+{{define "security.html"}}
+{{$d := .Diagnostics}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security Diagnostics - MediPort</title>
+<style>{{css}}</style>
+</head>
+<body>
+{{template "topbar" .}}
+<main class="page">
+
+  <div class="posture-banner {{if $d.OverallWeak}}at-risk{{else}}hardened{{end}}">
+    <div class="posture-icon">
+      {{if $d.OverallWeak}}{{icon "shield-warn"}}{{else}}{{icon "shield-check"}}{{end}}
+    </div>
+    <div class="posture-text">
+      <p class="eyebrow">Security posture</p>
+      <h1>{{$d.PostureLabel}}</h1>
+      <p>{{$d.WeakChecks}} of {{$d.TotalChecks}} checks flagged weak - protocol, certificate, application cryptography, and dependencies scanned below.</p>
+    </div>
+    <div class="ecg-scroll" aria-hidden="true">
+      <div class="ecg-track">
+        <svg viewBox="0 0 180 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 20 H60 L66 20 L71 4 L77 36 L83 20 L88 20 H180" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 180 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 20 H60 L66 20 L71 4 L77 36 L83 20 L88 20 H180" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="vitals-grid">
+
+    <div class="vital-card {{if not $d.Live.Detected}}status-neutral{{else if $d.Live.Weak}}status-weak{{else}}status-strong{{end}}">
+      <div class="vital-head">
+        <div>
+          <h3>Live TLS session</h3>
+          <span class="readout-tag">Read from the active connection</span>
+        </div>
+        {{if not $d.Live.Detected}}
+          <span class="badge neutral">{{icon "unknown"}} Not detected</span>
+        {{else if $d.Live.Weak}}
+          <span class="badge weak">{{icon "warn"}} Weak</span>
+        {{else}}
+          <span class="badge strong">{{icon "check"}} Strong</span>
+        {{end}}
+      </div>
+      <div class="vital-rows">
+        <div class="vital-row">
+          <span class="vr-label">Protocol</span>
+          <span class="vr-value">{{if $d.Live.Protocol}}{{$d.Live.Protocol}}{{else}}-{{end}}</span>
+        </div>
+        <div class="vital-row">
+          <span class="vr-label">Cipher suite</span>
+          <span class="vr-value">{{if $d.Live.Cipher}}{{$d.Live.Cipher}}{{else}}-{{end}}</span>
+        </div>
+        <div class="vital-row">
+          <span class="vr-label">Key exchange group</span>
+          <span class="vr-value">{{if $d.Live.Curve}}{{$d.Live.Curve}}{{else}}-{{end}}</span>
+        </div>
+      </div>
+      <div class="quantum-pill {{if not $d.Live.Detected}}unknown{{else if $d.Live.QuantumSafe}}yes{{else}}no{{end}}">
+        <span class="qp-label">Quantum-safe</span>
+        <span class="qp-value">{{if not $d.Live.Detected}}UNKNOWN{{else if $d.Live.QuantumSafe}}YES{{else}}NO{{end}}</span>
+      </div>
+    </div>
+
+    <div class="vital-card {{if $d.Cert.Weak}}status-weak{{else}}status-strong{{end}}">
+      <div class="vital-head">
+        <div>
+          <h3>Certificate</h3>
+          <span class="readout-tag">Curated demo state: {{$d.State}}</span>
+        </div>
+        {{if $d.Cert.Weak}}
+          <span class="badge weak">{{icon "warn"}} Weak</span>
+        {{else}}
+          <span class="badge strong">{{icon "check"}} Strong</span>
+        {{end}}
+      </div>
+      <div class="vital-rows">
+        <div class="vital-row">
+          <span class="vr-label">Signature algorithm</span>
+          <span class="vr-value">{{$d.Cert.SignatureAlgorithm}}</span>
+        </div>
+        <div class="vital-row">
+          <span class="vr-label">Key</span>
+          <span class="vr-value">{{$d.Cert.KeySpec}}</span>
+        </div>
+        <div class="vital-row">
+          <span class="vr-label">Issuer</span>
+          <span class="vr-value">{{$d.Cert.Issuer}}</span>
+        </div>
+      </div>
+      <div class="quantum-pill {{if $d.Cert.PostQuantum}}yes{{else}}no{{end}}">
+        <span class="qp-label">Post-quantum</span>
+        <span class="qp-value">{{if $d.Cert.PostQuantum}}YES{{else}}NO{{end}}</span>
+      </div>
+    </div>
+
+    <div class="vital-card crypto-rows {{if $d.AppCryptoWeak}}status-weak{{else}}status-strong{{end}}">
+      <div class="vital-head">
+        <div>
+          <h3>Application cryptography</h3>
+          <span class="readout-tag">Read from the codebase</span>
+        </div>
+        {{if $d.AppCryptoWeak}}
+          <span class="badge weak">{{icon "warn"}} Weak</span>
+        {{else}}
+          <span class="badge strong">{{icon "check"}} Strong</span>
+        {{end}}
+      </div>
+      <div class="vital-rows">
+        {{range $d.AppCrypto}}
+        <div class="vital-row">
+          <span class="vr-label">{{.Label}}</span>
+          <span class="vr-value">{{statusIcon .Weak}} {{.Value}}</span>
+        </div>
+        {{end}}
+      </div>
+    </div>
+
+    <div class="vital-card {{if $d.Dependency.Weak}}status-weak{{else}}status-strong{{end}}">
+      <div class="vital-head">
+        <div>
+          <h3>Dependencies</h3>
+          <span class="readout-tag">Session token library</span>
+        </div>
+        {{if $d.Dependency.Weak}}
+          <span class="badge weak">{{icon "warn"}} Vulnerable</span>
+        {{else}}
+          <span class="badge strong">{{icon "check"}} Clean</span>
+        {{end}}
+      </div>
+      <div class="dep-line">
+        <span class="dep-name">{{$d.Dependency.Name}}</span>
+        <span class="dep-version">{{$d.Dependency.Version}}</span>
+      </div>
+      <p class="dep-note {{if $d.Dependency.Weak}}weak-text{{else}}strong-text{{end}}">{{$d.Dependency.Note}}</p>
+      <p class="readout-note">Signed for session JWTs issued at /login</p>
+    </div>
+
+  </div>
+
+  <p class="footnote">Diagnostics also available as JSON at <code>/api/diagnostics</code>. Live TLS fields reflect the active connection; certificate, cryptography, and dependency fields reflect the configured demo state.</p>
+</main>
+</body>
+</html>
+{{end}}

@@ -1,0 +1,54 @@
+{{define "dashboard.html"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard - MediPort</title>
+<style>{{css}}</style>
+</head>
+<body>
+{{template "topbar" .}}
+<main class="page">
+  <div class="patient-banner">
+    <div class="avatar">JD</div>
+    <div>
+      <h1>{{.PatientName}}</h1>
+      <div class="patient-meta">
+        <span><b>MRN</b> {{.MRN}}</span>
+        <span><b>DOB</b> {{.DOB}}</span>
+        <span><b>Primary care</b> Dr. A. Rossum</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <h2>{{icon "records"}} Recent records</h2>
+    <span class="hint">1 record on file</span>
+  </div>
+
+  <div class="record-card">
+    <div class="record-row">
+      <div>
+        <p class="rt">{{.Diagnosis}}</p>
+        <p class="rd">Progress note - {{.RecordDate}}</p>
+      </div>
+      <span class="badge neutral">On file</span>
+    </div>
+    <div class="cipher-block">
+      <div class="cb-label">{{icon "lock"}} Encrypted at rest</div>
+      <code>{{.CipherHex}}</code>
+    </div>
+  </div>
+
+  <div class="cta-banner">
+    <div>
+      <h3>How secure is this portal, really?</h3>
+      <p>See the live TLS session, certificate, and cryptography behind every record.</p>
+    </div>
+    <a class="cta-btn" href="/security">Security Diagnostics {{icon "arrow-right"}}</a>
+  </div>
+</main>
+</body>
+</html>
+{{end}}
