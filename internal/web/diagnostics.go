@@ -174,7 +174,7 @@ func buildLiveTLS(r *http.Request) LiveTLS {
 	detected := protocol != "" || cipher != "" || curve != ""
 	strongProtocol := protocol == "TLSv1.3"
 	strongCipher := strings.Contains(cipher, "GCM") || strings.Contains(strings.ToUpper(cipher), "CHACHA20")
-	quantumSafe := curve == "X25519MLKEM768"
+	quantumSafe := isQuantumSafeGroup(curve)
 	weak := detected && (!strongProtocol || !strongCipher)
 
 	return LiveTLS{
@@ -187,6 +187,30 @@ func buildLiveTLS(r *http.Request) LiveTLS {
 		QuantumSafe:    quantumSafe,
 		Weak:           weak,
 	}
+}
+
+// isQuantumSafeGroup reports whether the negotiated TLS key-exchange group is a
+// post-quantum (hybrid) group. nginx reports the group either by name
+// ("X25519MLKEM768") or, when OpenSSL has no friendly name for it, by its numeric
+// TLS code point (e.g. "0x11ec"), so we match both forms. The groups in scope are
+// the ML-KEM / Kyber hybrids.
+func isQuantumSafeGroup(curve string) bool {
+	c := strings.ToLower(strings.TrimSpace(curve))
+	if c == "" {
+		return false
+	}
+	if strings.Contains(c, "mlkem") || strings.Contains(c, "kyber") {
+		return true
+	}
+	switch c {
+	case "0x11ec", // X25519MLKEM768
+		"0x11eb", // SecP256r1MLKEM768
+		"0x11ed", // SecP384r1MLKEM1024
+		"0x6399", // X25519Kyber768Draft00
+		"0x639a": // SecP256r1Kyber768Draft00
+		return true
+	}
+	return false
 }
 
 func demoState() string {
