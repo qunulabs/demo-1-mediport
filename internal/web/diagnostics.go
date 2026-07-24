@@ -94,12 +94,19 @@ func BuildDiagnostics(r *http.Request) Diagnostics {
 		}
 	} else {
 		state = "vulnerable"
+		// The before-state certificate is a TRUSTED classical chain (RSA-2048 /
+		// SHA-256) minted locally, issued by the MediPort Legacy Root CA - not the
+		// old SHA-1 self-signed cert. SHA-256 / RSA-2048 is not itself weak, so this
+		// card is marked accordingly; the before-state weakness is carried entirely
+		// by the Live TLS card (TLS 1.2, CBC-SHA1 ciphers, static-RSA key exchange)
+		// and the application-cryptography rows. Claiming a SHA-1 cert here would be
+		// a lie about what is actually served.
 		cert = Certificate{
-			SignatureAlgorithm: "RSA 2048 / SHA-1",
-			KeySpec:            "Classical, self-signed",
-			Issuer:             "Self-signed",
+			SignatureAlgorithm: "RSA 2048 / SHA-256",
+			KeySpec:            "Classical",
+			Issuer:             "MediPort Legacy Root CA",
 			PostQuantum:        false,
-			Weak:               true,
+			Weak:               false,
 		}
 		appCrypto = []CryptoRow{
 			{Label: "Password hashing", Value: "MD5", Weak: true},
