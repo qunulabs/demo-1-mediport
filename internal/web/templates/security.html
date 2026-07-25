@@ -56,7 +56,7 @@
         </div>
         <div class="vital-row">
           <span class="vr-label">Key exchange group</span>
-          <span class="vr-value">{{if $d.Live.Curve}}{{$d.Live.Curve}}{{else}}-{{end}}</span>
+          <span class="vr-value">{{if $d.Live.CurveLabel}}{{$d.Live.CurveLabel}}{{else}}-{{end}}</span>
         </div>
       </div>
       <div class="quantum-pill {{if not $d.Live.Detected}}unknown{{else if $d.Live.QuantumSafe}}yes{{else}}no{{end}}">

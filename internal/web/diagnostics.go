@@ -10,9 +10,16 @@ import (
 // front of the app. This is the genuinely "live" half of the diagnostics
 // page - it is never curated by DEMO_STATE.
 type LiveTLS struct {
-	Protocol       string `json:"protocol"`
-	Cipher         string `json:"cipher"`
-	Curve          string `json:"curve"`
+	Protocol string `json:"protocol"`
+	Cipher   string `json:"cipher"`
+	Curve    string `json:"curve"`
+	// CurveLabel is Curve turned into something an audience can read. nginx
+	// reports the negotiated group by IANA code point whenever OpenSSL has no
+	// friendly name for it, which is exactly the case for the hybrid PQC groups -
+	// so the single string this whole demo builds to was rendering as "0x11ec".
+	// Curve is kept raw beside it: the JSON endpoint should still say what the
+	// server actually reported.
+	CurveLabel     string `json:"curve_label"`
 	Detected       bool   `json:"detected"`
 	StrongProtocol bool   `json:"strong_protocol"`
 	StrongCipher   bool   `json:"strong_cipher"`
@@ -82,9 +89,10 @@ func BuildDiagnostics(r *http.Request) Diagnostics {
 		}
 		appCrypto = []CryptoRow{
 			{Label: "Password hashing", Value: "bcrypt (cost 12)", Weak: false},
-			{Label: "Record encryption", Value: "AES-256-GCM", Weak: false},
+			{Label: "Record encryption", Value: "AES-256-GCM, random nonce per record", Weak: false},
 			{Label: "Session token RNG", Value: "crypto/rand", Weak: false},
 			{Label: "Secrets management", Value: "Vault-managed (KMS-backed)", Weak: false},
+			{Label: "Internal service TLS", Value: "Verified, TLS 1.2 minimum", Weak: false},
 		}
 		dep = Dependency{
 			Name:    "golang-jwt/jwt",
@@ -108,11 +116,16 @@ func BuildDiagnostics(r *http.Request) Diagnostics {
 			PostQuantum:        false,
 			Weak:               false,
 		}
+		// These rows must keep naming what the code actually does. They are read
+		// aloud in Act 1 and then matched against the repository scan in Act 2, so a
+		// row that describes a weakness the source no longer carries (or that the
+		// scan cannot see) is the same defect twice.
 		appCrypto = []CryptoRow{
 			{Label: "Password hashing", Value: "MD5", Weak: true},
-			{Label: "Record encryption", Value: "AES-128-ECB, hardcoded key", Weak: true},
+			{Label: "Record encryption", Value: "AES-128-CBC, hardcoded key, constant IV", Weak: true},
 			{Label: "Session token RNG", Value: "math/rand (PRNG)", Weak: true},
-			{Label: "Secrets management", Value: "Hardcoded in source", Weak: true},
+			{Label: "Secrets management", Value: "Hardcoded in source (DB password + cloud key)", Weak: true},
+			{Label: "Internal service TLS", Value: "Verification disabled, TLS 1.0 allowed", Weak: true},
 		}
 		dep = Dependency{
 			Name:    "dgrijalva/jwt-go",
@@ -188,6 +201,7 @@ func buildLiveTLS(r *http.Request) LiveTLS {
 		Protocol:       protocol,
 		Cipher:         cipher,
 		Curve:          curve,
+		CurveLabel:     groupDisplayName(curve),
 		Detected:       detected,
 		StrongProtocol: strongProtocol,
 		StrongCipher:   strongCipher,
@@ -218,6 +232,36 @@ func isQuantumSafeGroup(curve string) bool {
 		return true
 	}
 	return false
+}
+
+// groupNames maps the TLS key-exchange groups this demo can negotiate to the name
+// an audience should read. Ported from demo-4's page (shared/atlas-backend/html/
+// index.html) so both demos name the same group the same way.
+var groupNames = map[string]string{
+	"0x11ec":     "X25519MLKEM768 (hybrid ML-KEM)",
+	"0x11eb":     "SecP256r1MLKEM768 (hybrid ML-KEM)",
+	"0x11ed":     "SecP384r1MLKEM1024 (hybrid ML-KEM)",
+	"0x6399":     "X25519Kyber768Draft00 (hybrid Kyber)",
+	"0x639a":     "SecP256r1Kyber768Draft00 (hybrid Kyber)",
+	"x25519":     "X25519 (classical)",
+	"prime256v1": "P-256 (classical)",
+	"secp384r1":  "P-384 (classical)",
+}
+
+// groupDisplayName turns whatever nginx reported for the negotiated group into a
+// readable name, falling back to the raw value so an unknown group is shown rather
+// than hidden. Act 4's payoff line is "TLS 1.3 + X25519MLKEM768", and it used to
+// render as "0x11ec": isQuantumSafeGroup already knew that code point, but only
+// for the boolean verdict, and the card printed the raw header.
+func groupDisplayName(curve string) string {
+	c := strings.TrimSpace(curve)
+	if c == "" {
+		return ""
+	}
+	if name, ok := groupNames[strings.ToLower(c)]; ok {
+		return name
+	}
+	return c
 }
 
 func demoState() string {
