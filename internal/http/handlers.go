@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	nethttp "net/http"
+	"os"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -89,9 +90,24 @@ func DashboardHandler(w nethttp.ResponseWriter, r *nethttp.Request) {
 		patientName = c.Value
 	}
 
-	// PLANTED WEAKNESS: AES-128 in ECB mode with a hardcoded key (see internal/crypto.EncryptRecord).
+	// PLANTED WEAKNESS: AES-128-CBC with a hardcoded key and a constant IV
+	// (see internal/crypto.EncryptRecord).
 	padded := crypto.PadToBlockSize(sampleRecord)
 	encrypted := crypto.EncryptRecord(padded)
+
+	// PLANTED WEAKNESS: the archive lookup goes out over a TLS client with
+	// verification disabled and a TLS 1.0 floor (see upstream.go), authenticating
+	// with credentials hardcoded in internal/store.
+	//
+	// Deliberately behind a flag the demo never sets. The records service does not
+	// exist here, so calling it on every dashboard load would cost a DNS miss and a
+	// timeout in front of an audience. The scan is unaffected: qshield reads the
+	// tls.Config literal, not the call graph.
+	if os.Getenv("MEDIPORT_ARCHIVE_LOOKUP") == "1" {
+		accessKeyID, _ := store.ArchiveCredentials()
+		_ = accessKeyID
+		_ = FetchArchivedResults("MRN-2024-0148")
+	}
 
 	data := web.DashboardPageData{
 		Active:      "dashboard",

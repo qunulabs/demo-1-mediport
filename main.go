@@ -9,6 +9,12 @@ import (
 
 func main() {
 	mux := http.NewServeMux()
+	// Browsers request /favicon.ico on every page; answer 204 so it stops logging a
+	// 404 that reads like a fault during the demo. The portal ships no icon on
+	// purpose - the security pages are the story, not the branding.
+	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	})
 	mux.HandleFunc("/", mphttp.IndexHandler)
 	mux.HandleFunc("/login", mphttp.LoginHandler)
 	mux.HandleFunc("/dashboard", mphttp.DashboardHandler)
