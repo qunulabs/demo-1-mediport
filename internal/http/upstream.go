@@ -35,7 +35,7 @@ var recordsClient = &nethttp.Client{
 	Timeout: 5 * time.Second,
 	Transport: &nethttp.Transport{
 		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
+			InsecureSkipVerify: false,
 			MinVersion:         tls.VersionTLS10,
 		},
 	},
