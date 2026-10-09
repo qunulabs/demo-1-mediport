@@ -36,7 +36,7 @@ var recordsClient = &nethttp.Client{
 	Transport: &nethttp.Transport{
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
-			MinVersion:         tls.VersionTLS10,
+			MinVersion:         tls.VersionTLS12,
 		},
 	},
 }
