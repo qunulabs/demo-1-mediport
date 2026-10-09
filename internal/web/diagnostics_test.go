@@ -110,3 +110,23 @@ func TestRemediatedStateAnswersEveryRow(t *testing.T) {
 		t.Errorf("remediated posture = %q (weak=%v)", after.PostureLabel, after.OverallWeak)
 	}
 }
+
+// Dashboard dates are calendar dates, so they render without any timezone shift,
+// and anything that is not a date breaks the render loudly.
+func TestDashboardDatesRenderAsFriendlyCalendarDates(t *testing.T) {
+	date := funcMap["date"].(func(string) (string, error))
+	cases := map[string]string{
+		"1990-01-01": "Mon, 1 Jan 1990",
+		"2024-11-03": "Sun, 3 Nov 2024",
+		"2024-12-03": "Tue, 3 Dec 2024",
+	}
+	for in, want := range cases {
+		got, err := date(in)
+		if err != nil || got != want {
+			t.Errorf("date(%q) = %q, %v; want %q", in, got, err, want)
+		}
+	}
+	if _, err := date("03/11/2024"); err == nil {
+		t.Error("a non-ISO date rendered instead of failing")
+	}
+}

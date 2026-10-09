@@ -6,8 +6,10 @@ package web
 
 import (
 	"embed"
+	"fmt"
 	"html/template"
 	"net/http"
+	"time"
 )
 
 //go:embed templates/*.html
@@ -55,6 +57,17 @@ var funcMap = template.FuncMap{
 			return "Weak"
 		}
 		return "Strong"
+	},
+	// date renders a calendar date ("2024-11-03") as "Sun, 3 Nov 2024". It is a
+	// DATE, not an instant, so it is never converted to any timezone: a date of birth
+	// must not move a day depending on who is looking. A value that is not a date
+	// fails the render rather than showing something wrong.
+	"date": func(s string) (string, error) {
+		d, err := time.Parse(time.DateOnly, s)
+		if err != nil {
+			return "", fmt.Errorf("not a calendar date: %q", s)
+		}
+		return d.Format("Mon, 2 Jan 2006"), nil
 	},
 }
 

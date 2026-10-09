@@ -16,7 +16,7 @@
       <h1>{{.PatientName}}</h1>
       <div class="patient-meta">
         <span><b>MRN</b> {{.MRN}}</span>
-        <span><b>DOB</b> {{.DOB}}</span>
+        <span><b>DOB</b> {{date .DOB}}</span>
         <span><b>Primary care</b> Dr. A. Rossum</span>
       </div>
     </div>
@@ -31,7 +31,7 @@
     <div class="record-row">
       <div>
         <p class="rt">{{.Diagnosis}}</p>
-        <p class="rd">Progress note - {{.RecordDate}} - Dr. A. Rossum</p>
+        <p class="rd">Progress note - {{date .RecordDate}} - Dr. A. Rossum</p>
       </div>
       <span class="badge neutral">On file</span>
     </div>
@@ -39,7 +39,7 @@
       <div><dt>Blood pressure</dt><dd>148 / 92 mmHg</dd></div>
       <div><dt>Heart rate</dt><dd>78 bpm</dd></div>
       <div><dt>Medication</dt><dd>Amlodipine 5 mg, once daily</dd></div>
-      <div><dt>Next review</dt><dd>{{.NextReview}}</dd></div>
+      <div><dt>Next review</dt><dd>{{date .NextReview}}</dd></div>
     </dl>
     <p class="record-storage">{{icon "lock"}} Stored encrypted with {{.RecordEncryption}}</p>
   </div>
