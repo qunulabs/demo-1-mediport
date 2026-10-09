@@ -1,7 +1,6 @@
 package http
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	nethttp "net/http"
 	"os"
@@ -92,8 +91,10 @@ func DashboardHandler(w nethttp.ResponseWriter, r *nethttp.Request) {
 
 	// PLANTED WEAKNESS: AES-128-CBC with a hardcoded key and a constant IV
 	// (see internal/crypto.EncryptRecord).
+	// The ciphertext is not rendered: a hex blob told a patient nothing. The record
+	// is still encrypted on every load, so the weak path stays live, not dead code.
 	padded := crypto.PadToBlockSize(sampleRecord)
-	encrypted := crypto.EncryptRecord(padded)
+	_ = crypto.EncryptRecord(padded)
 
 	// PLANTED WEAKNESS: the archive lookup goes out over a TLS client with
 	// verification disabled and a TLS 1.0 floor (see upstream.go), authenticating
@@ -116,7 +117,9 @@ func DashboardHandler(w nethttp.ResponseWriter, r *nethttp.Request) {
 		DOB:         "1990-01-01",
 		Diagnosis:   "Hypertension (I10)",
 		RecordDate:  "2024-11-03",
-		CipherHex:   hex.EncodeToString(encrypted),
+		NextReview:  "2024-12-03",
+
+		RecordEncryption: web.RecordEncryptionLabel(),
 	}
 
 	if err := web.Render(w, "dashboard.html", data); err != nil {

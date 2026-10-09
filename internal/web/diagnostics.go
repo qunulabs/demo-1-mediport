@@ -83,9 +83,11 @@ func BuildDiagnostics(r *http.Request) Diagnostics {
 		cert = Certificate{
 			SignatureAlgorithm: "ML-DSA-65 (Dilithium3)",
 			KeySpec:            "Post-quantum, NIST FIPS 204",
-			Issuer:             "QPKI Issuing CA",
-			PostQuantum:        true,
-			Weak:               false,
+			// The root qsdemo's QPKI ceremony creates for this run (orchestrate.go
+			// setupPKI), so the card names what Chrome's certificate viewer shows.
+			Issuer:      "MediPort Root CA",
+			PostQuantum: true,
+			Weak:        false,
 		}
 		appCrypto = []CryptoRow{
 			{Label: "Password hashing", Value: "bcrypt (cost 12)", Weak: false},
@@ -104,17 +106,19 @@ func BuildDiagnostics(r *http.Request) Diagnostics {
 		state = "vulnerable"
 		// The before-state certificate is a TRUSTED classical chain (RSA-2048 /
 		// SHA-256) minted locally, issued by the MediPort Legacy Root CA - not the
-		// old SHA-1 self-signed cert. SHA-256 / RSA-2048 is not itself weak, so this
-		// card is marked accordingly; the before-state weakness is carried entirely
-		// by the Live TLS card (TLS 1.2, CBC-SHA1 ciphers, static-RSA key exchange)
-		// and the application-cryptography rows. Claiming a SHA-1 cert here would be
-		// a lie about what is actually served.
+		// old SHA-1 self-signed cert. Claiming a SHA-1 cert here would be a lie about
+		// what is actually served.
+		//
+		// It IS flagged weak, and the reason is quantum, not classical: RSA-2048 is
+		// sound today and broken by a quantum computer, which is the whole posture
+		// this page grades and exactly what the qshield TLS scan reports. Marking it
+		// "Strong" beside a red "Post-quantum: NO" read as a contradiction on stage.
 		cert = Certificate{
 			SignatureAlgorithm: "RSA 2048 / SHA-256",
-			KeySpec:            "Classical",
+			KeySpec:            "RSA-2048, quantum-vulnerable",
 			Issuer:             "MediPort Legacy Root CA",
 			PostQuantum:        false,
-			Weak:               false,
+			Weak:               true,
 		}
 		// These rows must keep naming what the code actually does. They are read
 		// aloud in Act 1 and then matched against the repository scan in Act 2, so a

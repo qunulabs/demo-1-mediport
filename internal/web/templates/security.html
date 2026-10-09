@@ -69,10 +69,10 @@
       <div class="vital-head">
         <div>
           <h3>Certificate</h3>
-          <span class="readout-tag">Curated demo state: {{$d.State}}</span>
+          <span class="readout-tag">Served on this connection</span>
         </div>
         {{if $d.Cert.Weak}}
-          <span class="badge weak">{{icon "warn"}} Weak</span>
+          <span class="badge weak">{{icon "warn"}} Not quantum-safe</span>
         {{else}}
           <span class="badge strong">{{icon "check"}} Strong</span>
         {{end}}
@@ -141,7 +141,7 @@
 
   </div>
 
-  <p class="footnote">Diagnostics also available as JSON at <code>/api/diagnostics</code>. Live TLS fields reflect the active connection; certificate, cryptography, and dependency fields reflect the configured demo state.</p>
+  <p class="footnote">Diagnostics also available as JSON at <code>/api/diagnostics</code>.</p>
 </main>
 </body>
 </html>

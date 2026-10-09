@@ -82,7 +82,19 @@ type DashboardPageData struct {
 	DOB         string
 	Diagnosis   string
 	RecordDate  string
-	CipherHex   string
+	NextReview  string
+	// RecordEncryption names the at-rest cipher in a patient's words. It follows
+	// the same state as the Security Diagnostics "Record encryption" row, so the
+	// two pages never disagree about how the record is stored.
+	RecordEncryption string
+}
+
+// RecordEncryptionLabel is the at-rest cipher the dashboard names.
+func RecordEncryptionLabel() string {
+	if demoState() == "remediated" {
+		return "AES-256-GCM"
+	}
+	return "AES-128-CBC"
 }
 
 // SecurityPageData wraps Diagnostics with page-chrome fields (nav state)

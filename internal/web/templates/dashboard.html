@@ -31,14 +31,17 @@
     <div class="record-row">
       <div>
         <p class="rt">{{.Diagnosis}}</p>
-        <p class="rd">Progress note - {{.RecordDate}}</p>
+        <p class="rd">Progress note - {{.RecordDate}} - Dr. A. Rossum</p>
       </div>
       <span class="badge neutral">On file</span>
     </div>
-    <div class="cipher-block">
-      <div class="cb-label">{{icon "lock"}} Encrypted at rest</div>
-      <code>{{.CipherHex}}</code>
-    </div>
+    <dl class="record-facts">
+      <div><dt>Blood pressure</dt><dd>148 / 92 mmHg</dd></div>
+      <div><dt>Heart rate</dt><dd>78 bpm</dd></div>
+      <div><dt>Medication</dt><dd>Amlodipine 5 mg, once daily</dd></div>
+      <div><dt>Next review</dt><dd>{{.NextReview}}</dd></div>
+    </dl>
+    <p class="record-storage">{{icon "lock"}} Stored encrypted with {{.RecordEncryption}}</p>
   </div>
 
   <div class="cta-banner">
